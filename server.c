@@ -162,7 +162,7 @@ int main(int argc, char **argv)
         putchar('\n');
         exit(0);
     }
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < 8; i++) {
         if (strncmp(argv[2], baddirs[i], strlen(baddirs[i])) == 0) {
             printf("ERROR:  Bad top directory %s, see server -?\n", argv[2]);
             exit(3);
