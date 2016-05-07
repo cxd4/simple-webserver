@@ -8,7 +8,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
@@ -17,6 +16,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+/*
+ * 2016.05.07 cxd4
+ *
+ * setpgrp() documentation says to use setpgid() instead.
+ * Maybe this is why gcc -ansi -Wall complains about an implicit name.
+ */
+#include <unistd.h>
 
 #define BUFSIZE 8096
 #define ERROR 42
@@ -146,6 +153,7 @@ static const char* baddirs[] = {
 };
 int main(int argc, char **argv)
 {
+    int status;
     int i, port, pid, listenfd, socketfd, hit;
     static struct sockaddr_in cli_addr;
     static struct sockaddr_in serv_addr;
@@ -179,7 +187,10 @@ int main(int argc, char **argv)
     (void)signal(SIGHUP, SIG_IGN);
     for (i = 0; i < 32; i++)
         (void)close(i);
-    (void)setpgrp();
+
+    status = setpgrp();
+    if (status != 0)
+        fprintf(stderr, "Process group set failed with error %i.\n", status);
 
     my_log(LOG, "http server starting", argv[1], getpid());
 
