@@ -141,7 +141,9 @@ void web(int fd, int hit)
     exit(1);
 }
 
-
+static const char* baddirs[] = {
+    "/", "/etc", "/bin", "/lib", "/tmp", "/usr", "/dev", "/sbin"
+};
 int main(int argc, char **argv)
 {
     int i, port, pid, listenfd, socketfd, hit;
@@ -157,17 +159,14 @@ int main(int argc, char **argv)
         for (i = 0; extensions[i].ext != 0; i++)
             (void)printf(" %s", extensions[i].ext);
 
-        (void)printf(
-            "\n\tNot Supported: directories / /etc /bin /lib /tmp /usr /dev /sbin \n"
-        );
+        putchar('\n');
         exit(0);
     }
-    if (!strncmp(argv[2], "/"   , 2) || !strncmp(argv[2],"/etc", 5)
-     || !strncmp(argv[2], "/bin", 5) || !strncmp(argv[2],"/lib", 5)
-     || !strncmp(argv[2], "/tmp", 5) || !strncmp(argv[2],"/usr", 5)
-     || !strncmp(argv[2], "/dev", 5) || !strncmp(argv[2],"/sbin", 6)) {
-        (void)printf("ERROR: Bad top directory %s, see server -?\n", argv[2]);
-        exit(3);
+    for (i = 0; i < 8; i++)
+        if (strncmp(argv[2], baddirs[i], strlen(baddirs[i])) == 0) {
+            printf("ERROR:  Bad top directory %s, see server -?\n", argv[2]);
+            exit(3);
+        }
     }
     if (chdir(argv[2]) == -1) {
         (void)printf("ERROR: Can't Change to directory %s\n", argv[2]);
