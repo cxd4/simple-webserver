@@ -1,4 +1,3 @@
-#  Makefile for server
+# Makefile for server
 server:	server.c
-		gcc server.c -o server
-
+	gcc server.c -Os -o server
