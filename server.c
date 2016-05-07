@@ -145,7 +145,6 @@ void web(int fd, int hit)
 int main(int argc, char **argv)
 {
     int i, port, pid, listenfd, socketfd, hit;
-    size_t length;
     static struct sockaddr_in cli_addr;
     static struct sockaddr_in serv_addr;
 
@@ -199,6 +198,8 @@ int main(int argc, char **argv)
         log(ERROR, "system call", "listen", 0);
 
     for (hit = 1; ; hit++) {
+        socklen_t length;
+
         length = sizeof(cli_addr);
         if ((socketfd = accept(listenfd, (struct sockaddr *)&cli_addr, &length)) < 0)
             log(ERROR, "system call", "accept", 0);
