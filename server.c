@@ -154,7 +154,7 @@ static const char* baddirs[] = {
 int main(int argc, char **argv)
 {
     int status;
-    int i, port, pid, listenfd, socketfd, hit;
+    int i, port, pid, listenfd, hit;
     static struct sockaddr_in cli_addr;
     static struct sockaddr_in serv_addr;
 
@@ -196,11 +196,14 @@ int main(int argc, char **argv)
 
     my_log(LOG, "http server starting", argv[1], getpid());
 
-    if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (listenfd < 0)
         my_log(ERROR, "system call", "socket", 0);
+
     port = atoi(argv[1]);
     if (port < 0 || port > 60000)
         my_log(ERROR, "Invalid port number try [1,60000]", argv[1], 0);
+
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_addr.sin_port = htons(port);
@@ -211,14 +214,16 @@ int main(int argc, char **argv)
 
     for (hit = 1; ; hit++) {
         socklen_t length;
+        int socketfd;
 
         length = sizeof(cli_addr);
-        if ((socketfd = accept(listenfd, (struct sockaddr *)&cli_addr, &length)) < 0)
+        socketfd = accept(listenfd, (struct sockaddr *)&cli_addr, &length);
+        if (socketfd < 0)
             my_log(ERROR, "system call", "accept", 0);
 
         if ((pid = fork()) < 0) {
             my_log(ERROR, "system call", "fork", 0);
-	} else {
+        } else {
             if (pid == 0) {
                 close(listenfd);
                 web(socketfd, hit);
