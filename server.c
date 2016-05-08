@@ -31,8 +31,8 @@
 #define LOG   44
 
 struct {
-    char *ext;
-    char *filetype;
+    const char* ext;
+    const char* filetype;
 } extensions[] = {
     { "gif",  "image/gif" },
     { "jpg",  "image/jpeg" },
@@ -84,7 +84,7 @@ void my_log(int type, char *s1, char *s2, int num)
 void web(int fd, int hit)
 {
     static char buffer[BUFSIZE + 1];
-    char * fstr;
+    const char * fstr;
     int j, file_fd, buflen, len;
     long i, ret;
 
