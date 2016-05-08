@@ -153,10 +153,13 @@ static const char* baddirs[] = {
 };
 int main(int argc, char **argv)
 {
-    int status;
-    int i, port, pid, listenfd, hit;
     static struct sockaddr_in cli_addr;
     static struct sockaddr_in serv_addr;
+    long string_as_number;
+    unsigned short port;
+    int status;
+    int pid, listenfd, hit;
+    register int i;
 
     if (argc < 3  || argc > 3 || !strcmp(argv[1], "-?")) {
         printf(
@@ -200,9 +203,12 @@ int main(int argc, char **argv)
     if (listenfd < 0)
         my_log(ERROR, "system call", "socket", 0);
 
-    port = atoi(argv[1]);
-    if (port < 0 || port > 60000)
-        my_log(ERROR, "Invalid port number try [1,60000]", argv[1], 0);
+    string_as_number = strtol(argv[1], NULL, 0);
+    if (string_as_number < 0 || string_as_number > 60000) {
+        fprintf(stderr, "Invalid port number:  %li\n", string_as_number);
+        return 1;
+    }
+    port = (unsigned short)string_as_number;
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
