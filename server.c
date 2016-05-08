@@ -83,10 +83,10 @@ void my_log(int type, char *s1, char *s2, int num)
 
 void web(int fd, int hit)
 {
+    static char buffer[BUFSIZE + 1];
+    char * fstr;
     int j, file_fd, buflen, len;
     long i, ret;
-    char * fstr;
-    static char buffer[BUFSIZE + 1];
 
     ret = read(fd, buffer, BUFSIZE);
     if (ret == 0 || ret == -1) {
@@ -120,7 +120,7 @@ void web(int fd, int hit)
         strcpy(buffer, "GET /index.html");
 
     buflen = strlen(buffer);
-    fstr = (char *)0;
+    fstr = NULL;
     for (i = 0; extensions[i].ext != 0; i++) {
         len = strlen(extensions[i].ext);
         if (!strncmp(&buffer[buflen - len], extensions[i].ext, len)) {
@@ -128,7 +128,7 @@ void web(int fd, int hit)
             break;
         }
     }
-    if (fstr == 0)
+    if (fstr == NULL)
         my_log(SORRY, "file extension type not supported", buffer, fd);
 
     if ((file_fd = open(&buffer[5], O_RDONLY)) == -1)
@@ -136,10 +136,11 @@ void web(int fd, int hit)
 
     my_log(LOG, "SEND", &buffer[5], hit);
 
-    sprintf(buffer, "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", fstr);
+    sprintf(buffer, "HTTP/1.0 200 OK\r\nContent-Type:  %s\r\n\r\n", fstr);
     write(fd, buffer, strlen(buffer));
 
-    while ((ret = read(file_fd, buffer, BUFSIZE)) > 0) {
+    ret = read(file_fd, buffer, BUFSIZE);
+    while (ret > 0) {
         write(fd, buffer, ret);
     }
 #ifdef LINUX
