@@ -1,2 +1,5 @@
-#Don't upload log files
+# Don't upload log files.
 *.log
+
+# Don't upload the Unix executable `server', either.
+server
