@@ -25,6 +25,8 @@
  */
 #include <unistd.h>
 
+#include <assert.h>
+
 #define BUFSIZE 8096
 #define ERROR 42
 #define SORRY 43
@@ -53,14 +55,51 @@ struct {
     { 0, 0 }
 };
 
+static const char* err_IDs[] = {
+    "(none)",
+    "EPERM", "ENOENT", "ESRCH", "EINTR", "EIO", "ENXIO", "E2BIG", "ENOEXEC",
+    "EBADF", "ECHILD", "EAGAIN", "ENOMEM", "EACCES", "EFAULT", "ENOTBLK",
+    "EBUSY", "EEXIST", "EXDEV", "ENODEV", "ENOTDIR", "EISDIR", "EINVAL",
+    "ENFILE", "EMFILE", "ENOTTY", "ETXTBSY", "EFBIG", "ENOSPC", "ESPIPE",
+    "EROFS", "EMLINK", "EPIPE", "EDOM", "ERANGE",
+
+    "EDEADLK", "ENAMETOOLONG", "ENOLCK", "ENOSYS", "ENOTEMPTY", "ELOOP", "???",
+    "ENOMSG", "EIDRM", "ECHRNG", "EL2NSYNC", "EL3HLT", "EL3RST", "ELNRNG",
+    "EUNATCH", "ENOCSI", "EL2HLT", "EBADE", "EBADR", "EXFULL", "ENOANO",
+    "EBADRQC", "EBADSLT", "???",
+
+    "EBFONT", "ENOSTR", "ENODATA", "ETIME", "ENOSR", "ENONET", "ENOPKG",
+    "EREMOTE", "ENOLINK", "EADV", "ESRMNT", "ECOMM", "EPROTO", "EMULTIHOP",
+    "EDOTDOT", "EBADMSG", "EOVERFLOW", "ENOTUNIQ", "EBADFD", "EREMCHG",
+    "ELIBACC", "ELIBBAD", "ELIBSCN", "ELIBMAX", "ELIBEXEC", "EILSEQ",
+    "ERESTART", "ESTRPIPE", "EUSERS", "ENOTSOCK", "EDESTADDRREQ", "EMSGSIZE",
+    "EPROTOTYPE", "ENOPROTOOPT", "EPROTONOSUPPORT", "ESOCKTNOSUPPORT",
+    "EOPNOTSUPP", "EPFNOSUPPORT", "EAFNOSUPPORT", "EADDRINUSE", "EADDRNOTAVAIL",
+    "ENETDOWN", "ENETUNREACH", "ENETRESET", "ECONNABORTED", "ECONNRESET",
+    "ENOBUFS", "EISCONN", "ENOTCONN", "ESHUTDOWN", "ETOOMANYREFS", "ETIMEDOUT",
+    "ECONNREFUSED", "EHOSTDOWN", "EHOSTUNREACH", "EALREADY", "EINPROGRESS",
+    "ESTALE", "EUCLEAN", "ENOTNAM", "ENAVAIL", "EISNAM", "EREMOTEIO", "EDQUOT",
+
+    "ENOMEDIUM", "EMEDIUMTYPE", "ECANCELED", "ENOKEY", "EKEYEXPIRED",
+    "EKEYREVOKED", "EKEYREJECTED",
+
+    "EOWNERDEAD", "ENOTRECOVERABLE",
+};
+
 void my_log(int type, char *s1, char *s2, int num)
 {
     int fd;
     char logbuffer[BUFSIZE * 2];
+    const int known_errors = sizeof(err_IDs) / sizeof(const char *);
 
     switch (type) {
     case ERROR:
-        sprintf(logbuffer, "ERROR:  %s:%s Errno=%d exiting pid=%d", s1, s2, errno, getpid());
+        assert(errno >= 0 && errno < known_errors);
+        sprintf(
+            &logbuffer[0],
+            "ERROR:  %s:%s error %s exiting pid %d",
+            s1, s2, err_IDs[errno], getpid()
+        );
         break;
     case SORRY:
         sprintf(logbuffer, "<HTML><BODY><H1>Web Server Sorry: %s %s</H1></BODY></HTML>\r\n", s1, s2);
@@ -214,7 +253,9 @@ int main(int argc, char **argv)
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_addr.sin_port = htons(port);
-    if (bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+
+    status = bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    if (status != 0)
         my_log(ERROR, "system call", "bind", 0);
     if (listen(listenfd, 64) < 0)
         my_log(ERROR, "system call", "listen", 0);
