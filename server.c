@@ -33,7 +33,7 @@
 struct {
     char *ext;
     char *filetype;
-} extensions [] = {
+} extensions[] = {
     { "gif",  "image/gif" },
     { "jpg",  "image/jpeg" },
     { "jpeg", "image/jpeg" },
@@ -60,22 +60,22 @@ void my_log(int type, char *s1, char *s2, int num)
 
     switch (type) {
     case ERROR:
-        (void)sprintf(logbuffer, "ERROR:  %s:%s Errno=%d exiting pid=%d", s1, s2, errno, getpid());
+        sprintf(logbuffer, "ERROR:  %s:%s Errno=%d exiting pid=%d", s1, s2, errno, getpid());
         break;
     case SORRY:
-        (void)sprintf(logbuffer, "<HTML><BODY><H1>Web Server Sorry: %s %s</H1></BODY></HTML>\r\n", s1, s2);
-        (void)write(num, logbuffer, strlen(logbuffer));
-        (void)sprintf(logbuffer, "SORRY:  %s:%s", s1, s2);
+        sprintf(logbuffer, "<HTML><BODY><H1>Web Server Sorry: %s %s</H1></BODY></HTML>\r\n", s1, s2);
+        write(num, logbuffer, strlen(logbuffer));
+        sprintf(logbuffer, "SORRY:  %s:%s", s1, s2);
         break;
     case LOG:
-        (void)sprintf(logbuffer, "INFO :  %s:%s:%d", s1, s2, num);
+        sprintf(logbuffer, "INFO :  %s:%s:%d", s1, s2, num);
         break;
     }
 
     if ((fd = open("server.log", O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0) {
-        (void)write(fd, logbuffer, strlen(logbuffer));
-        (void)write(fd, "\n", 1);
-        (void)close(fd);
+        write(fd, logbuffer, strlen(logbuffer));
+        write(fd, "\n", 1);
+        close(fd);
     }
     if (type == ERROR || type == SORRY)
         exit(3);
@@ -117,7 +117,7 @@ void web(int fd, int hit)
             my_log(SORRY, "Parent directory (..) path names not supported", buffer, fd);
 
     if (!strncmp(&buffer[0], "GET /\0", 6) || !strncmp(&buffer[0], "get /\0", 6))
-        (void)strcpy(buffer, "GET /index.html");
+        strcpy(buffer, "GET /index.html");
 
     buflen = strlen(buffer);
     fstr = (char *)0;
@@ -136,11 +136,11 @@ void web(int fd, int hit)
 
     my_log(LOG, "SEND", &buffer[5], hit);
 
-    (void)sprintf(buffer, "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", fstr);
-    (void)write(fd, buffer, strlen(buffer));
+    sprintf(buffer, "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", fstr);
+    write(fd, buffer, strlen(buffer));
 
     while ((ret = read(file_fd, buffer, BUFSIZE)) > 0) {
-        (void)write(fd, buffer, ret);
+        write(fd, buffer, ret);
     }
 #ifdef LINUX
     sleep(1);
@@ -159,13 +159,15 @@ int main(int argc, char **argv)
     static struct sockaddr_in serv_addr;
 
     if (argc < 3  || argc > 3 || !strcmp(argv[1], "-?")) {
-        (void)printf(
+        printf(
             "usage: server [port] [server directory] &"
             "\tExample: server 80 ./ &\n\n"
-            "\tOnly Supports:"
+            "\tOnly Supports: "
         );
-        for (i = 0; extensions[i].ext != 0; i++)
-            (void)printf(" %s", extensions[i].ext);
+        for (i = 0; extensions[i].ext != 0; i++) {
+            putchar(' ');
+            fputs(extensions[i].ext, stdout);
+        }
 
         putchar('\n');
         exit(0);
@@ -177,16 +179,16 @@ int main(int argc, char **argv)
         }
     }
     if (chdir(argv[2]) == -1) {
-        (void)printf("ERROR: Can't Change to directory %s\n", argv[2]);
+        printf("ERROR: Can't Change to directory %s\n", argv[2]);
         exit(4);
     }
 
     if (fork() != 0)
         return 0;
-    (void)signal(SIGCLD, SIG_IGN);
-    (void)signal(SIGHUP, SIG_IGN);
+    signal(SIGCLD, SIG_IGN);
+    signal(SIGHUP, SIG_IGN);
     for (i = 0; i < 32; i++)
-        (void)close(i);
+        close(i);
 
     status = setpgrp();
     if (status != 0)
@@ -218,10 +220,10 @@ int main(int argc, char **argv)
             my_log(ERROR, "system call", "fork", 0);
 	} else {
             if (pid == 0) {
-                (void)close(listenfd);
+                close(listenfd);
                 web(socketfd, hit);
             } else {
-                (void)close(socketfd);
+                close(socketfd);
             }
         }
     }
