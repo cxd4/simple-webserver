@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 
     if (fork() != 0)
         return 0;
-    signal(SIGCLD, SIG_IGN);
+    signal(SIGCHLD, SIG_IGN);
     signal(SIGHUP, SIG_IGN);
     for (i = 0; i < 32; i++)
         close(i);
